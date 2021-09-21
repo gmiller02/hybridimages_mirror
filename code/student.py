@@ -34,17 +34,17 @@ def my_imfilter(image, kernel):
         kernelFlipped = np.rot90(kernelFlip)
 
         if imMax.ndim == 3:
+            padForColor = np.pad(imMax, ((kernel.shape[0]//2, kernel.shape[0]//2), (kernel.shape[1]//2, kernel.shape[1]//2), (0, 0)))
             for i in range(kernelFlipped.shape[0]//2, imMax.shape[0] + kernelFlipped.shape[0]//2): 
                 for j in range(kernelFlipped.shape[1]//2, imMax.shape[1] + kernelFlipped.shape[1]//2):
                     for k in range(0, 3):
-                        padForColor = np.pad(imMax, ((kernel.shape[0]//2, kernel.shape[0]//2), (kernel.shape[1]//2, kernel.shape[1]//2), (0, 0)))
                         value = np.sum(np.multiply(padForColor[i - kernelFlipped.shape[0]//2 : i + kernelFlipped.shape[0]//2 + 1, j - kernelFlipped.shape[1]//2: j + kernelFlipped.shape[1]//2 + 1, k], kernelFlipped))
                         filtered_image[i - kernelFlipped.shape[0]//2, j - kernelFlipped.shape[1]//2, k] = value
 
         else:
+            imMaxPad = np.pad(imMax, ((kernel.shape[0]//2, kernel.shape[0]//2), (kernel.shape[1]//2, kernel.shape[1]//2)))
             for i in range(kernelFlipped.shape[0]//2, imMax.shape[0] + kernelFlipped.shape[0]//2): 
                 for j in range(kernelFlipped.shape[1]//2, imMax.shape[1] + kernelFlipped.shape[1]//2):
-                    imMaxPad = np.pad(imMax, ((kernel.shape[0]//2, kernel.shape[0]//2), (kernel.shape[1]//2, kernel.shape[1]//2)))
                     value = np.sum(np.multiply(imMaxPad[i - kernelFlipped.shape[0]//2 : i + kernelFlipped.shape[0]//2 + 1, j - kernelFlipped.shape[1]//2 : j + kernelFlipped.shape[1]//2 + 1], kernelFlipped)) 
                     filtered_image[i - kernelFlipped.shape[0]//2, j - kernelFlipped.shape[1]//2] = value
                     
@@ -105,16 +105,16 @@ def gen_hybrid_image(image1, image2, cutoff_frequency):
     kernel = np.outer(probs, probs)
 
     # Your code here:
-    low_frequencies = my_im_filter(image1, kernel) # Replace with your implementation
+    low_frequencies = my_imfilter(image1, kernel) # Replace with your implementation
 
     # (2) Remove the low frequencies from image2. The easiest way to do this is to
     #     subtract a blurred version of image2 from the original version of image2.
     #     This will give you an image centered at zero with negative values.
     # Your code here #
-    high_frequencies = np.zeros(image1.shape) # Replace with your implementation
+    high_frequencies = image2 - my_imfilter(image2, kernel) # Replace with your implementation
 
     # (3) Combine the high frequencies and low frequencies
     # Your code here #
-    hybrid_image = np.zeros(image1.shape) # Replace with your implementation
+    hybrid_image = np.clip(high_frequencies + low_frequencies, 0, 1) # Replace with your implementation
 
     return low_frequencies, high_frequencies, hybrid_image
